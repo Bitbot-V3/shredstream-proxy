@@ -236,6 +236,8 @@ fn recv_from_channel_and_send_multiple_dest(
         packet_batch.iter().map(|x| x.meta().size).sum::<usize>()
     );
 
+    // info!("j_packet_batch: {:?}", packet_batch);
+
     if should_reconstruct_shreds {
         let _ = reconstruct_tx.try_send(packet_batch.clone());
     }

@@ -226,6 +226,9 @@ fn main() -> Result<(), ShredstreamProxyError> {
         ProxySubcommands::Shredstream(x) => x.common_args,
         ProxySubcommands::ForwardOnly(x) => x,
     };
+
+    info!("Args: {args:?}");
+
     set_host_id(hostname::get()?.into_string().unwrap());
     if (args.endpoint_discovery_url.is_none() && args.discovered_endpoints_port.is_some())
         || (args.endpoint_discovery_url.is_some() && args.discovered_endpoints_port.is_none())
@@ -270,6 +273,8 @@ fn main() -> Result<(), ShredstreamProxyError> {
             start_heartbeat(args, &exit, &shutdown_receiver, runtime, metrics.clone());
         thread_handles.push(heartbeat_hdl);
     }
+
+    info!("Started heartbeat thread...");
 
     // share sockets between refresh and forwarder thread
     let unioned_dest_sockets = Arc::new(ArcSwap::from_pointee(
@@ -324,6 +329,7 @@ fn main() -> Result<(), ShredstreamProxyError> {
         })
     };
     thread_handles.push(report_metrics_thread);
+    info!("Started report metrics thread...");
 
     let metrics_hdl = forwarder::start_forwarder_accessory_thread(
         deduper,
@@ -344,6 +350,7 @@ fn main() -> Result<(), ShredstreamProxyError> {
         );
         thread_handles.push(refresh_handle);
     }
+    info!("Started destination refresh thread...");
 
     if let Some(port) = args.grpc_service_port {
         let server_hdl = server::start_server_thread(
